@@ -1,58 +1,11 @@
 [
   {
-    "id": "2026-09-05-vlt-wasp121b",
-    "telescope": "VLT UT1 (Antu)",
-    "project": "Transmission spectroscopy of WASP-121b",
-    "start": "2026-09-05T23:30:00Z",
-    "end": "2026-09-06T04:15:00Z",
-    "notes": "Backup target HD 209458b if seeing exceeds 1.2\""
-  },
-  {
   "id": "2026-09-04-parkes-cryopaf-gbps",
   "telescope": "Parkes Cryopaf",
   "project": "GBPS",
   "start": "2026-09-04T06:00:00.000Z",
   "end": "2026-09-04T10:00:00.000Z",
   "notes": "P1205 Observation. Decide which pointing to observe"
-  },
-  {
-    "id": "2026-09-09-gemini-agn",
-    "telescope": "Gemini North",
-    "project": "AGN reverberation mapping — NGC 5548",
-    "start": "2026-09-09T06:00:00Z",
-    "end": "2026-09-09T11:30:00Z",
-    "notes": "Requires photometric conditions; queue mode"
-  },
-  {
-    "id": "2026-09-14-keck-quasar",
-    "telescope": "Keck II",
-    "project": "High-z quasar spectroscopy",
-    "start": "2026-09-14T05:00:00Z",
-    "end": "2026-09-14T13:00:00Z",
-    "notes": ""
-  },
-  {
-    "id": "2026-09-21-jwst-disk",
-    "telescope": "JWST",
-    "project": "Protoplanetary disk imaging — TW Hydrae",
-    "start": "2026-09-21T00:00:00Z",
-    "end": "2026-09-21T06:20:00Z",
-    "notes": "Scheduled via APT visit 14"
-  },
-  {
-    "id": "2026-09-27-vlt-microlensing",
-    "telescope": "VLT UT1 (Antu)",
-    "project": "Gravitational microlensing follow-up",
-    "start": "2026-09-27T22:00:00Z",
-    "end": "2026-09-28T02:45:00Z",
-    "notes": "Time-critical — alert triggered event"
-  },
-  {
-    "id": "2026-10-03-gemini-supernova",
-    "telescope": "Gemini North",
-    "project": "Type Ia supernova follow-up SN2026gt",
-    "start": "2026-10-03T07:15:00Z",
-    "end": "2026-10-03T10:45:00Z",
-    "notes": ""
   }
-]
+ ]
+
