@@ -6,6 +6,14 @@
   "start": "2026-09-04T06:00:00.000Z",
   "end": "2026-09-04T10:00:00.000Z",
   "notes": "P1205 Observation. Decide which pointing to observe"
+  },
+  {
+  "id": "2026-09-17-effelsberg-ubb-lpt-follow-up-j1634-",
+  "telescope": "Effelsberg UBB",
+  "project": "LPT Follow-up (J1634+44)",
+  "start": "2026-09-17T15:00:00.000Z",
+  "end": "2026-09-17T18:00:00.000Z",
+  "notes": ""
   }
  ]
 
