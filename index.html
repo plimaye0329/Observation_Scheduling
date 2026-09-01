@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Observing Schedules</title>
+<meta name="description" content="A running log of upcoming telescope observations, in UTC." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <h1>Observing Schedules</h1>
+      <p>A running log of upcoming telescope time, kept in UTC.</p>
+    </div>
+    <div class="clock">
+      <div class="time" id="clockTime">--:--:-- UTC</div>
+      <div class="date" id="clockDate">—</div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left rail: filters, up next, add button -->
+    <div>
+      <div class="panel">
+        <h2>Telescopes</h2>
+        <ul class="filter-list" id="filterList"></ul>
+      </div>
+
+      <div class="panel">
+        <h2>Up next</h2>
+        <div class="next-card" id="nextCard"></div>
+      </div>
+
+      <div class="panel">
+        <button class="btn primary" id="openAddBtn">+ Add observation</button>
+      </div>
+    </div>
+
+    <!-- Main column: calendar + log -->
+    <div>
+      <div class="panel">
+        <div class="cal-header">
+          <div class="month-label" id="monthLabel">—</div>
+          <div class="cal-nav">
+            <button id="prevMonth" aria-label="Previous month">‹</button>
+            <button id="nextMonth" aria-label="Next month">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="agenda-toolbar">
+          <h2 id="agendaTitle" style="margin:0;">Upcoming &amp; in progress</h2>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <button class="clear-filter" id="clearDayFilter" style="display:none;">Clear day filter</button>
+            <label class="toggle-row">
+              <input type="checkbox" id="showPastToggle" />
+              Show past observations
+            </label>
+          </div>
+        </div>
+        <div id="agendaBody"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="note">
+    Data lives in <code>observations.json</code> in this repository. Adding an entry below writes the JSON you need to paste
+    into that file and commit — that keeps the schedule identical for everyone who visits, instead of stuck in one browser.
+  </footer>
+
+</div>
+
+<!-- Add observation modal -->
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal">
+    <button class="close-x" id="closeModalBtn" aria-label="Close">×</button>
+    <h2>Add an observation</h2>
+    <p class="sub">Times are entered in your local timezone and converted to UTC automatically.</p>
+    <form id="addForm">
+      <div class="field">
+        <label for="fTelescope">Telescope</label>
+        <input type="text" id="fTelescope" name="telescope" placeholder="e.g. VLT UT1 (Antu)" required />
+      </div>
+      <div class="field">
+        <label for="fProject">Project</label>
+        <input type="text" id="fProject" name="project" placeholder="e.g. Transit spectroscopy of WASP-121b" required />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="fStart">Start</label>
+          <input type="datetime-local" id="fStart" name="start" required />
+        </div>
+        <div class="field">
+          <label for="fEnd">End (optional)</label>
+          <input type="datetime-local" id="fEnd" name="end" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="fNotes">Notes (optional)</label>
+        <textarea id="fNotes" name="notes" placeholder="Backup targets, conditions required, proposal ID…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn primary">Generate entry</button>
+      </div>
+    </form>
+    <div class="json-output" id="jsonOutput">
+      <p>Paste this object into <code>observations.json</code>, then commit &amp; push to publish it:</p>
+      <pre id="jsonPre"></pre>
+      <button class="btn" id="copyJsonBtn" style="margin-top:8px;">Copy JSON</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
