@@ -17,11 +17,15 @@
   <header class="hero">
     <div>
       <h1>Observing Schedules</h1>
-      <p>A running log of upcoming telescope time, kept in UTC.</p>
+      <p>A running log of upcoming telescope time. Times shown in your local timezone — switch to UTC any time.</p>
     </div>
     <div class="clock">
-      <div class="time" id="clockTime">--:--:-- UTC</div>
+      <div class="time" id="clockTime">--:--:--</div>
       <div class="date" id="clockDate">—</div>
+      <div class="tz-toggle" id="tzToggle">
+        <button id="tzLocalBtn" class="active" type="button">Local</button>
+        <button id="tzUtcBtn" type="button">UTC</button>
+      </div>
     </div>
   </header>
 
@@ -75,8 +79,10 @@
   </div>
 
   <footer class="note">
-    Data lives in <code>observations.json</code> in this repository. Adding an entry below writes the JSON you need to paste
-    into that file and commit — that keeps the schedule identical for everyone who visits, instead of stuck in one browser.
+    Data lives in <code>observations.json</code>, stored in UTC, so it means the same thing to everyone regardless of timezone.
+    The page then displays it converted to whoever is viewing it in their own local time by default — use the Local/UTC switch above
+    the clock to see raw UTC instead. Adding an entry below writes the JSON you need to paste into <code>observations.json</code>
+    and commit — that keeps the schedule identical for everyone who visits, instead of stuck in one browser.
   </footer>
 
 </div>

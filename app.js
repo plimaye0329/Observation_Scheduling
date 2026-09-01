@@ -13,6 +13,8 @@ const TELESCOPE_COLORS = [
   "var(--telescope-5)",
 ];
 
+const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 const state = {
   observations: [],
   telescopeColor: new Map(),
@@ -21,6 +23,7 @@ const state = {
   viewMonth: null, // 0-indexed
   selectedDay: null, // "YYYY-MM-DD" or null
   showPast: false,
+  timeMode: "local", // "local" | "utc" — controls how everything is DISPLAYED. Storage is always UTC.
 };
 
 const els = {};
@@ -30,8 +33,8 @@ document.addEventListener("DOMContentLoaded", init);
 async function init() {
   cacheEls();
   const now = new Date();
-  state.viewYear = now.getUTCFullYear();
-  state.viewMonth = now.getUTCMonth();
+  state.viewYear = now.getFullYear();
+  state.viewMonth = now.getMonth();
 
   startClock();
   bindStaticEvents();
@@ -50,6 +53,8 @@ async function init() {
 
   assignTelescopeColors();
   renderFilters();
+  els.tzLocalBtn.classList.toggle("active", state.timeMode === "local");
+  els.tzUtcBtn.classList.toggle("active", state.timeMode === "utc");
   renderAll();
   setInterval(renderNextCard, 1000);
 }
@@ -57,6 +62,9 @@ async function init() {
 function cacheEls() {
   els.clockTime = document.getElementById("clockTime");
   els.clockDate = document.getElementById("clockDate");
+  els.tzToggle = document.getElementById("tzToggle");
+  els.tzLocalBtn = document.getElementById("tzLocalBtn");
+  els.tzUtcBtn = document.getElementById("tzUtcBtn");
   els.filterList = document.getElementById("filterList");
   els.nextCard = document.getElementById("nextCard");
   els.calGrid = document.getElementById("calGrid");
@@ -77,6 +85,8 @@ function cacheEls() {
 }
 
 function bindStaticEvents() {
+  els.tzLocalBtn.addEventListener("click", () => setTimeMode("local"));
+  els.tzUtcBtn.addEventListener("click", () => setTimeMode("utc"));
   els.prevMonth.addEventListener("click", () => shiftMonth(-1));
   els.nextMonth.addEventListener("click", () => shiftMonth(1));
   els.clearFilterBtn.addEventListener("click", () => {
@@ -106,6 +116,36 @@ function closeModal() {
   els.jsonOutput.classList.remove("visible");
 }
 
+/* ---------------- Time mode (local vs UTC display) ---------------- */
+
+function setTimeMode(mode) {
+  if (mode === state.timeMode) return;
+  state.timeMode = mode;
+  els.tzLocalBtn.classList.toggle("active", mode === "local");
+  els.tzUtcBtn.classList.toggle("active", mode === "utc");
+  state.selectedDay = null; // day boundaries can shift between local/UTC, so clear any day filter
+  updateClock();
+  renderAll();
+}
+
+// Returns calendar/clock fields for a date, read through the lens of the
+// currently selected display mode ("local" = viewer's own device timezone).
+function parts(date) {
+  return state.timeMode === "utc"
+    ? {
+        y: date.getUTCFullYear(), mo: date.getUTCMonth(), d: date.getUTCDate(),
+        h: date.getUTCHours(), mi: date.getUTCMinutes(), s: date.getUTCSeconds(),
+      }
+    : {
+        y: date.getFullYear(), mo: date.getMonth(), d: date.getDate(),
+        h: date.getHours(), mi: date.getMinutes(), s: date.getSeconds(),
+      };
+}
+
+function tzLabel() {
+  return state.timeMode === "utc" ? "UTC" : LOCAL_TZ;
+}
+
 /* ---------------- Clock ---------------- */
 
 function startClock() {
@@ -115,13 +155,15 @@ function startClock() {
 
 function updateClock() {
   const now = new Date();
-  const hh = String(now.getUTCHours()).padStart(2, "0");
-  const mm = String(now.getUTCMinutes()).padStart(2, "0");
-  const ss = String(now.getUTCSeconds()).padStart(2, "0");
-  els.clockTime.textContent = `${hh}:${mm}:${ss} UTC`;
+  const p = parts(now);
+  const hh = String(p.h).padStart(2, "0");
+  const mm = String(p.mi).padStart(2, "0");
+  const ss = String(p.s).padStart(2, "0");
+  els.clockTime.textContent = `${hh}:${mm}:${ss} ${state.timeMode === "utc" ? "UTC" : ""}`.trim();
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  els.clockDate.textContent = `${dayNames[now.getUTCDay()]} ${now.getUTCDate()} ${monthNames[now.getUTCMonth()]} ${now.getUTCFullYear()}`;
+  const dow = state.timeMode === "utc" ? now.getUTCDay() : now.getDay();
+  els.clockDate.textContent = `${dayNames[dow]} ${p.d} ${monthNames[p.mo]} ${p.y} \u00B7 ${tzLabel()}`;
 }
 
 /* ---------------- Telescope colors & filters ---------------- */
@@ -218,12 +260,12 @@ function formatDuration(ms) {
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  const parts = [];
-  if (days) parts.push(`${days}d`);
-  parts.push(`${String(hours).padStart(2, "0")}h`);
-  parts.push(`${String(minutes).padStart(2, "0")}m`);
-  parts.push(`${String(seconds).padStart(2, "0")}s`);
-  return parts.join(" ");
+  const segments = [];
+  if (days) segments.push(`${days}d`);
+  segments.push(`${String(hours).padStart(2, "0")}h`);
+  segments.push(`${String(minutes).padStart(2, "0")}m`);
+  segments.push(`${String(seconds).padStart(2, "0")}s`);
+  return segments.join(" ");
 }
 
 /* ---------------- Calendar ---------------- */
@@ -236,7 +278,8 @@ function shiftMonth(delta) {
 }
 
 function dateKey(d) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  const p = parts(d);
+  return `${p.y}-${String(p.mo + 1).padStart(2, "0")}-${String(p.d).padStart(2, "0")}`;
 }
 
 function renderCalendar() {
@@ -251,10 +294,18 @@ function renderCalendar() {
     byDay.get(key).push(o);
   });
 
-  const firstOfMonth = new Date(Date.UTC(state.viewYear, state.viewMonth, 1));
-  // Monday-first grid: getUTCDay() 0=Sun..6=Sat -> convert so Monday=0
-  const startOffset = (firstOfMonth.getUTCDay() + 6) % 7;
-  const gridStart = new Date(Date.UTC(state.viewYear, state.viewMonth, 1 - startOffset));
+  // Build the grid as plain calendar days (year/month/day labels), constructed
+  // through the same mode lens used to bucket observations, so a day box
+  // always means "this calendar date, as seen in the selected timezone".
+  const isUtc = state.timeMode === "utc";
+  const makeDay = (y, m, d) => (isUtc ? new Date(Date.UTC(y, m, d)) : new Date(y, m, d));
+  const dayOfWeek = (dt) => (isUtc ? dt.getUTCDay() : dt.getDay());
+  const monthOf = (dt) => (isUtc ? dt.getUTCMonth() : dt.getMonth());
+  const dateOf = (dt) => (isUtc ? dt.getUTCDate() : dt.getDate());
+
+  const firstOfMonth = makeDay(state.viewYear, state.viewMonth, 1);
+  // Monday-first grid: 0=Sun..6=Sat -> convert so Monday=0
+  const startOffset = (dayOfWeek(firstOfMonth) + 6) % 7;
 
   const todayKey = dateKey(new Date());
 
@@ -267,10 +318,9 @@ function renderCalendar() {
   });
 
   for (let i = 0; i < 42; i++) {
-    const cellDate = new Date(gridStart);
-    cellDate.setUTCDate(gridStart.getUTCDate() + i);
+    const cellDate = makeDay(state.viewYear, state.viewMonth, 1 - startOffset + i);
     const key = dateKey(cellDate);
-    const inMonth = cellDate.getUTCMonth() === state.viewMonth;
+    const inMonth = monthOf(cellDate) === state.viewMonth;
     const dayObs = byDay.get(key) || [];
 
     const cell = document.createElement("div");
@@ -284,7 +334,7 @@ function renderCalendar() {
     ).join("");
     const moreHtml = dayObs.length > 4 ? `<span class="cal-more">+${dayObs.length - 4}</span>` : "";
 
-    cell.innerHTML = `<span class="daynum">${cellDate.getUTCDate()}</span><span class="cal-dots">${dotsHtml}${moreHtml}</span>`;
+    cell.innerHTML = `<span class="daynum">${dateOf(cellDate)}</span><span class="cal-dots">${dotsHtml}${moreHtml}</span>`;
 
     if (dayObs.length) {
       cell.addEventListener("click", () => {
@@ -337,7 +387,7 @@ function renderAgenda() {
   els.agendaBody.innerHTML = `
     <table class="log-table">
       <thead>
-        <tr><th>Time (UTC)</th><th>Telescope</th><th>Project</th></tr>
+        <tr><th id="timeColHeader">${state.timeMode === "local" ? "Time (your local time)" : "Time (UTC)"}</th><th>Telescope</th><th>Project</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
@@ -346,14 +396,16 @@ function renderAgenda() {
 
 function formatRange(start, end) {
   const pad = (n) => String(n).padStart(2, "0");
-  const dstr = `${start.getUTCFullYear()}-${pad(start.getUTCMonth() + 1)}-${pad(start.getUTCDate())}`;
-  const stime = `${pad(start.getUTCHours())}:${pad(start.getUTCMinutes())}`;
+  const sp = parts(start);
+  const dstr = `${sp.y}-${pad(sp.mo + 1)}-${pad(sp.d)}`;
+  const stime = `${pad(sp.h)}:${pad(sp.mi)}`;
   if (!end) return `${dstr} ${stime}`;
   const sameDay = dateKey(start) === dateKey(end);
-  const etime = `${pad(end.getUTCHours())}:${pad(end.getUTCMinutes())}`;
+  const ep = parts(end);
+  const etime = `${pad(ep.h)}:${pad(ep.mi)}`;
   return sameDay
     ? `${dstr} ${stime}–${etime}`
-    : `${dstr} ${stime} → ${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())} ${etime}`;
+    : `${dstr} ${stime} \u2192 ${ep.y}-${pad(ep.mo + 1)}-${pad(ep.d)} ${etime}`;
 }
 
 /* ---------------- Add observation form ---------------- */
