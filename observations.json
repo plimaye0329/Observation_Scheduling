@@ -70,6 +70,14 @@
   "start": "2026-10-15T06:00:00.000Z",
   "end": "2026-10-15T10:00:00.000Z",
   "notes": ""
+  },
+  {
+  "id": "2026-10-29-parkes-cryopaf-gbps",
+  "telescope": "Parkes Cryopaf",
+  "project": "GBPS",
+  "start": "2026-10-29T01:00:00.000Z",
+  "end": "2026-10-29T08:30:00.000Z",
+  "notes": ""
   }
  ]
 
